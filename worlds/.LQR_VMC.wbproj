@@ -1,0 +1,18 @@
+Webots Project File version R2020a
+perspectives: 000000ff00000000fd00000002000000000000000000000000fc0100000001fb0000001a0044006f00630075006d0065006e0074006100740069006f006e0000000000ffffffff0000006900ffffff00000001000003c800000374fc0200000002fb0000001400540065007800740045006400690074006f00720100000017000002a80000008700fffffffb0000000e0043006f006e0073006f006c006501000002c1000000ca0000003900ffffff000002760000037400000001000000020000000100000008fc00000000
+simulationViewPerspectives: 000000ff000000010000000200000000000003f40100000002010000000100
+sceneTreePerspectives: 000000ff000000010000000200000277000000fa0100000002010000000200
+maximizedDockId: -1
+centralWidgetVisible: 1
+renderingMode: PLAIN
+selectionDisabled: 0
+viewpointLocked: 0
+orthographicViewHeight: 1
+textFiles: 0 "controllers/LQR_VMC/LQR_VMC.c" "controllers/LQR_VMC/LQR_VMC.h" "controllers/VMC_TEST_J/VMC.c" "controllers/VMC_TEST_J/VMC.h" "controllers/VMC_TEST_J/LQR.c" "controllers/VMC_TEST_J/LQR.h"
+globalOptionalRendering: CoordinateSystem::JointAxes::PenPaintingRays
+centerOfMass: robot
+centerOfBuoyancy: robot
+supportPolygon: robot
+x3dExport-shadowBias: 0
+x3dExport-shadowMapSize: 2048
+x3dExport-shadowRadius: 0

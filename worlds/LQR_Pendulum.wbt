@@ -1,0 +1,249 @@
+#VRML_SIM R2020a utf8
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.0323050495943097 0.9981495287905973 0.051516035812334715 4.400168857203825
+  position -3.372390588786547 0.9022189234671435 -0.7878140872915689
+  follow "robot"
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  translation 3.09156 -5.32907e-15 -0.65116
+  floorSize 20 20
+  wallHeight 0.2
+}
+Robot {
+  translation -0.317529 0.155495 -0.102629
+  rotation 0.9993710841329076 0.027179102288095922 0.0227757019173919 -1.5724853071795861
+  children [
+    Gyro {
+    }
+    InertialUnit {
+      name "imu"
+    }
+    HingeJoint {
+      jointParameters DEF RF_LEG_MOTOR HingeJointParameters {
+        position 1
+        axis 0 0 2
+        anchor 0.1 0 0.1
+      }
+      device [
+        RotationalMotor {
+          name "RF_motor"
+          acceleration 20
+          maxTorque 25
+        }
+      ]
+      endPoint Solid {
+        translation 0.16730417158257493 -0.04323362629492059 0.15499966900465556
+        rotation 1.9410818608644397e-07 -9.441048622934773e-07 0.9999999999995356 0.9999999827279357
+        children [
+          HingeJoint {
+            jointParameters HingeJointParameters {
+              position -1.823
+              axis 0 0 1
+              anchor 0 -0.08 0
+            }
+            endPoint DEF DEF_RFB Solid {
+              translation -0.15493806480791986 -0.040074051495089934 0.00999999999999862
+              rotation 0 0 -1 1.823
+              children [
+                HingeJoint {
+                  jointParameters DEF R_WHEEL_MOTOR HingeJointParameters {
+                    position -69.90498083635806
+                    axis 0 0 1
+                    anchor 0 -0.16 0
+                  }
+                  device [
+                    RotationalMotor {
+                      name "rightWheel_motor"
+                      maxVelocity 100
+                    }
+                  ]
+                  endPoint Solid {
+                    translation -0.00016813700000001334 -0.160973 0.0149998
+                    rotation 0.9825233677548694 -0.13162133187975353 -0.13161936335444524 1.5884293858994352
+                    children [
+                      DEF DEF_WHEEL_R Shape {
+                        appearance Appearance {
+                          material Material {
+                          }
+                        }
+                        geometry Cylinder {
+                          height 0.02
+                          radius 0.03
+                        }
+                      }
+                    ]
+                    boundingObject USE DEF_WHEEL_R
+                    physics Physics {
+                      mass 0.1
+                    }
+                  }
+                }
+                DEF DEF_BRD_LEG Shape {
+                  geometry Box {
+                    size 0.025 0.32 0.01
+                  }
+                }
+              ]
+              name "LEG_FRB"
+              boundingObject USE DEF_BRD_LEG
+              physics Physics {
+                mass 0.5
+              }
+            }
+          }
+          DEF DEF_BR_LEG Shape {
+            geometry Box {
+              size 0.025 0.16 0.01
+            }
+          }
+        ]
+        name "solid(4)"
+        boundingObject USE DEF_BR_LEG
+        physics Physics {
+          mass 0.5
+        }
+      }
+    }
+    HingeJoint {
+      jointParameters DEF RB_LEG_MOTOR HingeJointParameters {
+        position -1
+        axis 0 0 2
+        anchor -0.1 0 0.1
+      }
+      device [
+        RotationalMotor {
+          name "RB_motor"
+          acceleration 200
+          maxTorque 25
+        }
+      ]
+      endPoint Solid {
+        translation -0.1672996706258877 -0.04322867158714476 0.16499968760898082
+        rotation -1.336364892970838e-07 1.2118430488846438e-06 -0.9999999999992569 1.0000000172270496
+        children [
+          HingeJoint {
+            jointParameters HingeJointParameters {
+              position 1.823
+              axis 0 0 1
+              anchor 0 -0.08 0
+            }
+            endPoint Solid {
+              translation 0.15493837953161357 -0.04007383629601223 -0.00999999999999875
+              rotation 0 0 1 1.823
+              children [
+                HingeJoint {
+                  jointParameters HingeJointParameters {
+                    position -0.2484456188814532
+                    axis 0 0 1
+                    anchor 0 -0.16 0
+                  }
+                  endPoint SolidReference {
+                    solidName "LEG_FRB"
+                  }
+                }
+                DEF DEF_BRD_LEG Shape {
+                  geometry Box {
+                    size 0.025 0.32 0.01
+                  }
+                }
+              ]
+              name "LBD"
+              boundingObject USE DEF_BRD_LEG
+              physics Physics {
+                mass 0.5
+              }
+            }
+          }
+          DEF DEF_BR_LEG Shape {
+            geometry Box {
+              size 0.025 0.16 0.01
+            }
+          }
+        ]
+        name "solid(2)"
+        boundingObject USE DEF_BR_LEG
+        physics Physics {
+          mass 0.5
+        }
+      }
+    }
+    Solid {
+      translation 0.1 0 0
+      rotation 1 0 0 1.5707996938995747
+      children [
+        Shape {
+          geometry Cylinder {
+            height 0.31
+            radius 0.02
+          }
+        }
+      ]
+      name "solid(1)"
+    }
+    Solid {
+      translation -0.1 0 0
+      rotation 1 0 0 1.5708003061004252
+      children [
+        Shape {
+          geometry Cylinder {
+            height 0.33
+            radius 0.02
+          }
+        }
+      ]
+      name "solid2"
+    }
+    Solid {
+      children [
+        DEF DEF_BODY Shape {
+          appearance PBRAppearance {
+          }
+          geometry Box {
+            size 0.3 0.3 0.3
+          }
+        }
+      ]
+      boundingObject DEF DEF_BODY Shape {
+        appearance Appearance {
+          material Material {
+            diffuseColor 0 0.333333 1
+          }
+          texture ImageTexture {
+          }
+        }
+        geometry Box {
+          size 0.3 0.28 0.3
+        }
+      }
+      physics Physics {
+        mass 10
+      }
+    }
+  ]
+  physics Physics {
+    mass 10
+  }
+  controller "LQR_Pendulum"
+  supervisor TRUE
+}
+Solid {
+  translation -0.33 0.6 0.2
+  children [
+    DEF DEF_SHARP Shape {
+      geometry Capsule {
+        height 0.5
+        radius 0.005
+      }
+    }
+  ]
+  boundingObject USE DEF_SHARP
+  physics Physics {
+    mass 1
+  }
+}

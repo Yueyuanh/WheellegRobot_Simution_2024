@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "D:\\Webots\\include\\controller\\c",
+                "E:\\桌面\\轮腿仿真\\Webots\\controllers\\VMC_TEST_J",
+                "D:\\Webots\\include\\controller\\c\\webots",
+                "D:\\MATLAB\\extern\\include",
+                "D:\\MATLAB\\extern\\lib\\win64\\microsoft",
+                "D:\\MATLAB\\bin",
+                "D:\\MATLAB\\bin\\win64"
+
+            ],
+            "defines": [
+                "${default}"
+            ],
+            "macFrameworkPath": [
+                "${default}"
+            ],
+            "forcedInclude": [
+                "${default}"
+            ],
+            "compileCommands": "${default}",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "${default}",
+                "path": [
+                    "${default}",
+                    "D:\\Webots\\lib\\controller"
+                ]
+            },
+            "intelliSenseMode": "${default}",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "${default}"
+        }
+    ],
+    "version": 4
+}
