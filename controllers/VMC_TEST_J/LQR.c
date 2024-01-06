@@ -142,36 +142,12 @@ LQR参数含义
 // fp32 balance_LQR[2][6] = {
 //     {-17.690696, -1.259276, -0.063846, -1.059620, 1.359147, 0.379568},
 //     {8.146555, 0.729250, 0.060783, 1.005222, 5.710594, 1.260828}
-// };
+// };//可以
 
-//可以
-// fp32 balance_LQR[2][6] = {
-//     {-120, -1.2, -30, -500, 10, 0.5},
-//     {10, 1, 0.1, 1, 10, 2}};
-//     //timespace=32
-
-//可以2
 fp32 balance_LQR[2][6] = {
-    {-110, -0.25, -0, -0, 10, 0},
-    {0, 0, 0, 0, 10, 0}};
-    //timespace=32
-
-
-
-
-// fp32 balance_LQR[2][6] = {
-//     {-120, -0.00, -0, -0, 00, 0},
-//     {0, 0, 1, 1, 10, 0.0}
-// };//timespace=16
-
-
-
-// fp32 balance_LQR[2][6] = {
-//     {-20, -1.2, -8, -2, 10, 0.5},
-//     {10, 1, 0.1, 1, 70.065601, 1.728580}
-// };//0.25
-
-
+    {-120, -1.2, -30, -1100, 1, 0.5},
+    {10, 1, 0.1, 1, 7.065601, 1.728580}
+};
 
 
 //0.2
@@ -194,45 +170,29 @@ fp32 balance_LQR[2][6] = {
 // fp32 balance_LQR[2][6] = {
 //     {-17.965765, -1.331328, -0.901705, -1.477927, 1.674492, 0.395944},
 //     {8.307744, 0.792628, 0.864704, 1.366730, 6.984576, 1.243223}
-// };  // 0.300000 Q[1 1 1000 100 15000 1] R[1000 250]  pitch反应慢，腿部僵硬
-
-//12.30 加入卡尔曼滤波做数据融合
-// fp32 balance_LQR[2][6] = {
-//     {-15.703329, -0.935633, -0.354957, -0.825425, 1.923611, 0.441821},
-//     {13.840065, 1.012834, 0.702403, 1.590804, 6.480597, 1.095615}
-// };  // 0.250000 Q[1 1 200 5 10000 10] R[1000 150]
-
-
-
-// fp32 balance_LQR[2][6] = {
-//     {-15.387205, -0.839887, -0.112916, -0.454359, 0.602079, 0.246463},
-//     {10.323947, 0.644757, 0.170294, 0.674979, 1.596872, 0.557471}
-// };  // 0.250000 Q[1 0 20 0 1000 0] R[1000 250]
-
-
-
-
-// fp32 balance_LQR[2][6] = {
-//     {-20, -0, -0, -0, 1, 0},
-//     {10, 0,0, 5, 25, 0.0}
 // };  // 0.300000 Q[1 1 1000 100 15000 1] R[1000 250]
 
-//2024/1/2 发现webots运行频率太低了，高了电脑跑不了！//32的参数没了，调一版16的
+// fp32 balance_LQR[2][6] = {
+//     {-20, -0, -0, -0, 0, 0},
+//     {0, 0,0, 5, 5, 0.0}
+// };  // 0.300000 Q[1 1 1000 100 15000 1] R[1000 250]
+
+
 
 
 void LQR_init()
 {
-    float coordinate_PD[3] = {20, 0, 0};
+    float coordinate_PD[3] = {10, 0, 0};
     PID_init(&LQR.coordinate_PD,PID_POSITION, coordinate_PD, 20, 0);
 
-    float stand_PID[3] = {130, 1, 1700};
+    float stand_PID[3] = {130, 1, 1500};
     PID_init(&LQR.stand_PID, PID_POSITION, stand_PID, 300, 100);
     LQR.stand_feed =130;               //前馈推力 等于 高度稳定状态下扭矩大小 130 15KG
 
     float roll_PD[3] = {100, 0, 00};//500 0 100
     PID_init(&LQR.roll_PID, PID_POSITION, roll_PD, 300, 100);
 
-    float yaw_PD[3] = {5, 0, 10};
+    float yaw_PD[3] = {5, 0, 20};
     PID_init(&LQR.yaw_PD, PID_POSITION, yaw_PD, 2, 1);
 
     chassis_data.foot_distance_set = 0;
@@ -259,8 +219,8 @@ void LQR_calc()
 
         LQR.LQR_OUT_R[0][0] = -balance_LQR[0][0] *  LQR.LQR_FEED_R[0][0];
         LQR.LQR_OUT_R[0][1] = -balance_LQR[0][1] *  LQR.LQR_FEED_R[0][1];
-        LQR.LQR_OUT_R[0][2] = -balance_LQR[0][2] *  LQR.LQR_FEED_R[0][2];
-        LQR.LQR_OUT_R[0][3] = -balance_LQR[0][3] *  LQR.LQR_FEED_R[0][3];
+        LQR.LQR_OUT_R[0][2] = -balance_LQR[0][2] * -LQR.LQR_FEED_R[0][2];
+        LQR.LQR_OUT_R[0][3] = -balance_LQR[0][3] * -LQR.LQR_FEED_R[0][3];
         LQR.LQR_OUT_R[0][4] = -balance_LQR[0][4] *  LQR.LQR_FEED_R[0][4];
         LQR.LQR_OUT_R[0][5] = -balance_LQR[0][5] *  LQR.LQR_FEED_R[0][5];
 
@@ -271,7 +231,7 @@ void LQR_calc()
         + LQR.LQR_OUT_R[0][3] 
         + LQR.LQR_OUT_R[0][4] 
         + LQR.LQR_OUT_R[0][5];
-
+        
         //
         LQR.LQR_FEED_L[0][0] = (chassis_data.leg_angle[1]-pi/2);//
         LQR.LQR_FEED_L[0][1] = (-chassis_data.leg_gyro[1]);
@@ -282,8 +242,8 @@ void LQR_calc()
 
         LQR.LQR_OUT_L[0][0] = -balance_LQR[0][0] *  LQR.LQR_FEED_L[0][0];
         LQR.LQR_OUT_L[0][1] = -balance_LQR[0][1] *  LQR.LQR_FEED_L[0][1];
-        LQR.LQR_OUT_L[0][2] = -balance_LQR[0][2] *  LQR.LQR_FEED_L[0][2];
-        LQR.LQR_OUT_L[0][3] = -balance_LQR[0][3] *  LQR.LQR_FEED_L[0][3];
+        LQR.LQR_OUT_L[0][2] = -balance_LQR[0][2] * -LQR.LQR_FEED_L[0][2];
+        LQR.LQR_OUT_L[0][3] = -balance_LQR[0][3] * -LQR.LQR_FEED_L[0][3];
         LQR.LQR_OUT_L[0][4] = -balance_LQR[0][4] *  LQR.LQR_FEED_L[0][4];
         LQR.LQR_OUT_L[0][5] = -balance_LQR[0][5] *  LQR.LQR_FEED_L[0][5];
 
@@ -313,8 +273,8 @@ void LQR_calc()
         // 驱动轮电机
 
         //这里，本身leg和wheel公用一个feedback
-        LQR.LQR_OUT_R[1][0] = -balance_LQR[1][0] * LQR.LQR_FEED_R[0][0];//这里轮和leg_angle是正反馈，但是参数是负反馈，所以需要反一下
-        LQR.LQR_OUT_R[1][1] = -balance_LQR[1][1] * LQR.LQR_FEED_R[0][1];
+        LQR.LQR_OUT_R[1][0] = +balance_LQR[1][0] * LQR.LQR_FEED_R[0][0];//这里轮和leg_angle是正反馈，但是参数是负反馈，所以需要反一下
+        LQR.LQR_OUT_R[1][1] = +balance_LQR[1][1] * LQR.LQR_FEED_R[0][1];
         LQR.LQR_OUT_R[1][2] = -balance_LQR[1][2] * LQR.LQR_FEED_R[0][2];
         LQR.LQR_OUT_R[1][3] = -balance_LQR[1][3] * LQR.LQR_FEED_R[0][3];
         LQR.LQR_OUT_R[1][4] = -balance_LQR[1][4] * LQR.LQR_FEED_R[0][4];
@@ -332,8 +292,8 @@ void LQR_calc()
 
         //
 
-        LQR.LQR_OUT_L[1][0] = -balance_LQR[1][0] * LQR.LQR_FEED_L[0][0];
-        LQR.LQR_OUT_L[1][1] = -balance_LQR[1][1] * LQR.LQR_FEED_L[0][1];
+        LQR.LQR_OUT_L[1][0] = +balance_LQR[1][0] * LQR.LQR_FEED_L[0][0];
+        LQR.LQR_OUT_L[1][1] = +balance_LQR[1][1] * LQR.LQR_FEED_L[0][1];
         LQR.LQR_OUT_L[1][2] = -balance_LQR[1][2] * LQR.LQR_FEED_L[0][2];
         LQR.LQR_OUT_L[1][3] = -balance_LQR[1][3] * LQR.LQR_FEED_L[0][3];
         LQR.LQR_OUT_L[1][4] = -balance_LQR[1][4] * LQR.LQR_FEED_L[0][4];
@@ -351,22 +311,24 @@ void LQR_calc()
         
         LQR_log();
 
-        for (int i = 0; i < 6;i++)
-        {
-            printf("leg_R  :%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[0][i]);
-        }
-        for (int i = 0; i < 6;i++)
-        {
-            printf("wheel_R:%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[1][i]);
-        }
-        for (int i = 0; i < 6;i++)
-        {
-            printf("leg_L  :%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[0][i]);
-        }
-         for (int i = 0; i < 6;i++)
-        {
-            printf("wheel_L:%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[1][i]);
-        }
+        printf("%f", chassis_data.leg_length_set[0]);
+
+        // for (int i = 0; i < 6;i++)
+        // {
+        //     printf("leg_R  :%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[0][i]);
+        // }
+        // for (int i = 0; i < 6;i++)
+        // {
+        //     printf("wheel_R:%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[1][i]);
+        // }
+        // for (int i = 0; i < 6;i++)
+        // {
+        //     printf("leg_L  :%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[0][i]);
+        // }
+        //  for (int i = 0; i < 6;i++)
+        // {
+        //     printf("wheel_L:%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[1][i]);
+        // }
 }
 
 void LQR_log()
