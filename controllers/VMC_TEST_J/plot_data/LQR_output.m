@@ -36,6 +36,7 @@ lqr_l_15=lqr_wl(:,7);
 
 %%
 %右腿关节扭矩
+
 subplot(2,2,1);
 
 plot(lqr_t,lqr_r_00);
@@ -97,7 +98,7 @@ plot(lqr_t,lqr_l_04);
 hold on;
 plot(lqr_t,lqr_l_05);
 hold on;
-plot(lqr_t,lqr_l_00+lqr_l_01+lqr_l_02+lqr_l_03+lqr_l_04+lqr_l_05);
+plot(lqr_t,lqr_l_00+lqr_l_01+lqr_l_02+lqr_l_03+lqr_l_04+lqr_l_05,"o-");
 
 % 添加标题和标签
 title('LQR 左侧关节Tp输出');

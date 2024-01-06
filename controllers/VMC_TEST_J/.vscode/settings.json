@@ -34,7 +34,9 @@
         "pid.h": "c",
         "lqr.h": "c",
         "user_lib.h": "c",
-        "kalmanfilter.h": "c"
+        "kalmanfilter.h": "c",
+        "vmc_test_j.h": "c",
+        "camera.h": "c"
     }, // 格式化时调整include的顺序（按字母排序）
     
     

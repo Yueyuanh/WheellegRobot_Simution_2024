@@ -9,8 +9,8 @@
                 "D:\\MATLAB\\extern\\include",
                 "D:\\MATLAB\\extern\\lib\\win64\\microsoft",
                 "D:\\MATLAB\\bin",
-                "D:\\MATLAB\\bin\\win64"
-
+                "D:\\MATLAB\\bin\\win64",
+                "${workspaceFolder}"
             ],
             "defines": [
                 "${default}"
