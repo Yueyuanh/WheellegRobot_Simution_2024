@@ -10,7 +10,6 @@
 #include <webots/Keyboard.h>
 #include <webots/Camera.h>
 #include <webots/supervisor.h>
-#include <webots/pen.h>
 
 #include <user_lib.h>
 #include <KalmanFilter.h>
@@ -26,8 +25,6 @@ struct chassis_tag_t
     WbDeviceTag IMU;
     WbDeviceTag GYRO;
     WbDeviceTag ACCEL;
-    WbDeviceTag PEN_TOP;
-
 } chassis_tag;
 
 struct chassis_data_t
@@ -38,7 +35,7 @@ struct chassis_data_t
     Kalman_sec_t kalman_distance;
 
     // 观测器数据
-    float yaw, pitch, roll;         // 2 1 0
+    float yaw, pitch, roll;                // 2 1 0
     float accel_x, accel_y, accel_z;       // 0 1 2
     float gyro_yaw, gyro_pitch, gyro_roll; //
 

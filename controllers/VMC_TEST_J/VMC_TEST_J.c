@@ -29,9 +29,7 @@
 /*
  * You may want to add macros here.
  */
-#define TIME_STEP 32
-#define TIME_STEP_S TIME_STEP/1000
-//basicTimestep 是基础步长（UI更新步长），而timestep是程序运行步长
+#define TIME_STEP 16
 /*
  * This is the main program.
  * The arguments of the main function can be specified by the
@@ -150,20 +148,13 @@ void chassis_init()
 
   //LQR init
   LQR_init();
-
+  
   // VMC init
   VMC_init();
   differentiator_init(&chassis_data.wheel_speed_r);
   differentiator_init(&chassis_data.wheel_speed_l);
-
-  differentiator_init(&VMC_LEG_R.leg_motor_speed[0]);
-  differentiator_init(&VMC_LEG_R.leg_motor_speed[1]);
-  differentiator_init(&VMC_LEG_R.leg_motor_speed[2]);
-  differentiator_init(&VMC_LEG_R.leg_motor_speed[3]);
-
-
   Kalman_fir_init(&chassis_data.kalman_speed,10,10);
-  Kalman_sec_init(&chassis_data.kalman_distance, 0.001, 0.001);
+  Kalman_sec_init(&chassis_data.kalman_distance, 0.08, 0.08);
 }
 
 void chassis_mode_set()
@@ -201,8 +192,8 @@ void chassis_feedback_update()
   chassis_data.wheel_position[1] = -wb_supervisor_field_get_sf_float(supervisor.wheel_motor_pos[1])*0.06;
   
   // speed
-  chassis_data.wheel_speed[0] = differentiator(&chassis_data.wheel_speed_r,40,TIME_STEP_S,chassis_data.wheel_position[0]);
-  chassis_data.wheel_speed[1] = differentiator(&chassis_data.wheel_speed_l,40,TIME_STEP_S,chassis_data.wheel_position[1]);
+  chassis_data.wheel_speed[0] = differentiator(&chassis_data.wheel_speed_r,40,0.032,chassis_data.wheel_position[0]);
+  chassis_data.wheel_speed[1] = differentiator(&chassis_data.wheel_speed_l,40,0.032,chassis_data.wheel_position[1]);
 
   // const float lpf_const = 0.9;
   // chassis_data.wheel_speed_lpf[0] = lpf_const * chassis_data.wheel_speed[0] + (1 - lpf_const) * chassis_data.wheel_speed_last[0];
@@ -251,10 +242,10 @@ void chassis_feedback_update()
   chassis_data.leg_position[3] = wb_supervisor_field_get_sf_float(supervisor.leg_motor_pos[3]);
 
  // speed
-  chassis_data.leg_speed[0] = differentiator(&VMC_LEG_R.leg_motor_speed[0],40,TIME_STEP_S,chassis_data.leg_position[0]);
-  chassis_data.leg_speed[1] = differentiator(&VMC_LEG_R.leg_motor_speed[1],40,TIME_STEP_S,chassis_data.leg_position[1]);
-  chassis_data.leg_speed[2] = differentiator(&VMC_LEG_R.leg_motor_speed[2],40,TIME_STEP_S,chassis_data.leg_position[2]);
-  chassis_data.leg_speed[3] = differentiator(&VMC_LEG_R.leg_motor_speed[3],40,TIME_STEP_S,chassis_data.leg_position[3]);
+  chassis_data.leg_speed[0] = differentiator(&VMC_LEG_R.leg_motor_speed[0],40,0.032,chassis_data.leg_position[0]);
+  chassis_data.leg_speed[1] = differentiator(&VMC_LEG_R.leg_motor_speed[1],40,0.032,chassis_data.leg_position[1]);
+  chassis_data.leg_speed[2] = differentiator(&VMC_LEG_R.leg_motor_speed[2],40,0.032,chassis_data.leg_position[2]);
+  chassis_data.leg_speed[3] = differentiator(&VMC_LEG_R.leg_motor_speed[3],40,0.032,chassis_data.leg_position[3]);
 
   // VMC数据更新
   VMC_LEG_R.Phi4 = pi - (chassis_data.leg_position[0] + pi / 2);
@@ -267,7 +258,7 @@ void chassis_feedback_update()
   Forward_kinematics_R(VMC_LEG_R.Phi1, VMC_LEG_R.Phi4, chassis_data.leg_speed[1],chassis_data.leg_speed[0], 0, 0);
   Forward_kinematics_L(VMC_LEG_L.Phi1, VMC_LEG_L.Phi4, chassis_data.leg_speed[2],chassis_data.leg_speed[3], 0, 0);
 
-  // leg length
+  //leg length
   chassis_data.leg_length[0] = VMC_LEG_R.L0;
   chassis_data.leg_length[1] = VMC_LEG_L.L0;
 
@@ -278,11 +269,11 @@ void chassis_feedback_update()
   chassis_data.leg_gyro[0] = VMC_LEG_R.Phi0_gyro - chassis_data.gyro_pitch;
   chassis_data.leg_gyro[1] = VMC_LEG_L.Phi0_gyro - chassis_data.gyro_pitch;
 
-  // 观测器
-  VMC_LEG_R.L0_dot = differentiator(&VMC_LEG_R.d_L0,40,TIME_STEP_S,VMC_LEG_R.L0);
-  VMC_LEG_L.L0_dot = differentiator(&VMC_LEG_L.d_L0,40,TIME_STEP_S,VMC_LEG_L.L0);
+  //观测器
+  VMC_LEG_R.L0_dot = differentiator(&VMC_LEG_R.d_L0,40,0.032,VMC_LEG_R.L0);
+  VMC_LEG_L.L0_dot = differentiator(&VMC_LEG_L.d_L0,40,0.032,VMC_LEG_L.L0);
 
-  // 是否悬空标志位判断
+  //是否悬空标志位判断
   if(VMC_LEG_R.F_foot<0.1&&VMC_LEG_L.F_foot<0.1)
   {
     chassis_data.free_flag = 1;
@@ -298,7 +289,7 @@ void chassis_feedback_update()
   plotFile3("ACCEL", wb_robot_get_time(), chassis_data.accel_x, chassis_data.accel_y, chassis_data.accel_z);
 
   plotFile3("LQR_1", wb_robot_get_time(), pi/2-chassis_data.leg_angle[0], chassis_data.leg_gyro[0],chassis_data.foot_distance);
-  plotFile3("LQR_2", wb_robot_get_time(), chassis_data.foot_speed_lpf, chassis_data.pitch, chassis_data.gyro_pitch);
+  plotFile3("LQR_2", wb_robot_get_time(), chassis_data.foot_speed_kalman, chassis_data.pitch, chassis_data.gyro_pitch);
 
   if (wb_robot_get_time() > 0)
   {
@@ -402,7 +393,7 @@ void chassis_log_output()
   // printf("LF: %f,LB: %f \n",VMC_LEG_L.T[0],VMC_LEG_L.T[1]);
 
   char value_str[32];
-  sprintf(value_str, "L0:%f", chassis_data.leg_angle[0]-pi/2);
+  sprintf(value_str, "L0:%f", chassis_data.leg_length[0]);
   wb_supervisor_set_label(0, value_str, 0, 0, 0.1, 0xffff00, 0, "Arial");
 
   char value_str_2[32];

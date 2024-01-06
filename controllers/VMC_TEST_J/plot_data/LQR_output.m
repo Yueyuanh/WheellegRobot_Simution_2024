@@ -97,7 +97,7 @@ plot(lqr_t,lqr_l_04);
 hold on;
 plot(lqr_t,lqr_l_05);
 hold on;
-plot(lqr_t,lqr_l_00+lqr_l_01+lqr_l_02+lqr_l_03+lqr_l_04+lqr_l_05,"o-");
+plot(lqr_t,lqr_l_00+lqr_l_01+lqr_l_02+lqr_l_03+lqr_l_04+lqr_l_05);
 
 % 添加标题和标签
 title('LQR 左侧关节Tp输出');

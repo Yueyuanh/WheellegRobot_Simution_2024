@@ -99,7 +99,7 @@ float KalmanFilter_fir(Kalman_fir_t *kalman,float z_data)
 */
 void Kalman_sec_init(Kalman_sec_t *kalman, float Qc_1,float Qc_2)
 {
-    kalman->time_const = 0.002;
+    kalman->time_const = 0.032;
     //初始状态
     kalman->X.x = 0;
     kalman->X.v = 0;
@@ -151,7 +151,7 @@ void KalmanFilter_sec(Kalman_sec_t *kalman,float distance,float accel)
     kalman->P_prior.P[0][1] = kalman->A[0][1] * (kalman->A[0][0] * kalman->P.P[0][0] + kalman->A[0][1] * kalman->P.P[1][0]) + kalman->Q[0][1];
     kalman->P_prior.P[1][0] = kalman->A[1][0] * (kalman->A[1][0] * kalman->P.P[0][0] + kalman->A[1][1] * kalman->P.P[1][0]) + kalman->Q[1][0];
     kalman->P_prior.P[1][1] = kalman->A[1][1] * (kalman->A[1][0] * kalman->P.P[0][0] + kalman->A[1][1] * kalman->P.P[1][0]) + kalman->Q[1][1];
-
+    
     //更新kalman_gain
     double S = kalman->P_prior.P[0][0] + kalman->R;
     kalman->K[0] = kalman->P_prior.P[0][0] / S;
@@ -175,4 +175,69 @@ void KalmanFilter_sec(Kalman_sec_t *kalman,float distance,float accel)
     printf("K:%f \n", kalman->P.P[0][0]);
 }
 
-//EKF
+/*
+#include <stdio.h>
+
+typedef struct {
+    double x;  // 位置
+    double v;  // 速度
+} StateVector;
+
+typedef struct {
+    double p11; // 位置方差
+    double p12; // 位置-速度协方差
+    double p21; // 速度-位置协方差
+    double p22; // 速度方差
+} CovarianceMatrix;
+
+double A[2][2] = {{1, 1}, {0, 1}};
+double B[2] = {0.5, 1};  // 输入矩阵
+double Q[2][2] = {{0.01, 0}, {0, 0.01}};
+double R = 0.1;
+
+StateVector x = {0, 0};
+CovarianceMatrix P = {1, 0, 0, 1};
+
+void kalmanFilter(double acceleration, double distance) {
+    // 预测步骤
+    StateVector x_prior;
+    CovarianceMatrix P_prior;
+
+    // 计算状态预测
+    x_prior.x = A[0][0] * x.x + A[0][1] * x.v + B[0] * acceleration;
+    x_prior.v = A[1][0] * x.x + A[1][1] * x.v + B[1] * acceleration;
+
+    // 计算协方差预测
+    P_prior.p11 = A[0][0] * (A[0][0] * P.p11 + A[0][1] * P.p21) + Q[0][0];
+    P_prior.p12 = A[0][1] * (A[0][0] * P.p11 + A[0][1] * P.p21) + Q[0][1];
+    P_prior.p21 = A[1][0] * (A[1][0] * P.p11 + A[1][1] * P.p21) + Q[1][0];
+    P_prior.p22 = A[1][1] * (A[1][0] * P.p11 + A[1][1] * P.p21) + Q[1][1];
+
+    // 更新步骤
+    double S = P_prior.p11 + R;
+    double K1 = P_prior.p11 / S;
+    double K2 = P_prior.p21 / S;
+
+    // 更新状态估计
+    x.x = x_prior.x + K1 * (distance - x_prior.x);
+    x.v = x_prior.v + K2 * (distance - x_prior.x);
+
+    // 更新协方差矩阵
+    P.p11 = (1 - K1) * P_prior.p11;
+    P.p12 = (1 - K1) * P_prior.p12;
+    P.p21 = (1 - K2) * P_prior.p21;
+    P.p22 = (1 - K2) * P_prior.p22;
+}
+
+int main() {
+    double acceleration = 0.1;
+    double distance = 1.0;
+
+    kalmanFilter(acceleration, distance);
+
+    printf("Estimated State: x = %lf, v = %lf\n", x.x, x.v);
+
+    return 0;
+}
+
+*/
