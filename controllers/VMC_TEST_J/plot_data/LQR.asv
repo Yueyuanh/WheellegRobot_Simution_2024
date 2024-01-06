@@ -41,7 +41,7 @@ plot(dx_angle,dt_leg);
 
 % 添加标题和标签
 title('LQR状态变量 摆角/摆加速度');
-legend('leg-angle','leg-gyro','leg-gyro-check');
+legend('leg-angle','leg-gyro','leg_');
 xlabel('时间');
 ylabel('rad rad/s');
 % 显示网格

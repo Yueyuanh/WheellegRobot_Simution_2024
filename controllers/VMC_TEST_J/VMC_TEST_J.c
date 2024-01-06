@@ -181,7 +181,6 @@ void chassis_feedback_update()
   chassis_data.accel_y = wb_accelerometer_get_values(chassis_tag.ACCEL)[2];
   chassis_data.accel_z = wb_accelerometer_get_values(chassis_tag.ACCEL)[1];
 
-  printf("\n%f %f\n", chassis_data.yaw_count,chassis_data.yaw-chassis_data.yaw_last);
   if(chassis_data.yaw-chassis_data.yaw_last > pi)
   {
     chassis_data.yaw_count--;
@@ -228,12 +227,13 @@ void chassis_feedback_update()
   chassis_data.foot_distance = (chassis_data.wheel_position[0] + chassis_data.wheel_position[1]) / 2;//这也是线距离啊，不是角度
 
   // foot speed
-  chassis_data.foot_speed = (chassis_data.wheel_speed[0] + chassis_data.wheel_speed[1]) / 2* 0.06;//注意电机速度方向,注意是线速度
+  chassis_data.foot_speed = (chassis_data.wheel_speed[0] + chassis_data.wheel_speed[1]) / 2;//注意电机速度方向,注意是线速度
 
   const float foot_speed_lpf_const = 0.95;
   chassis_data.foot_speed_lpf = (1-foot_speed_lpf_const) * chassis_data.foot_speed + foot_speed_lpf_const * chassis_data.foot_speed_last;
   chassis_data.foot_speed_last = chassis_data.foot_speed_lpf;
-  
+  printf("speed_lpf:%f\n", chassis_data.foot_speed_lpf);
+
   //KalmanFilter test
   //chassis_data.foot_speed_kalman = KalmanFilter_fir(&chassis_data.kalman_speed, chassis_data.foot_speed);
 
@@ -303,7 +303,7 @@ void chassis_feedback_update()
   plotFile3("ACCEL", wb_robot_get_time(), chassis_data.accel_x, chassis_data.accel_y, chassis_data.accel_z);
 
   plotFile3("LQR_1", wb_robot_get_time(), pi/2-chassis_data.leg_angle[0], chassis_data.leg_gyro[0],chassis_data.foot_distance);
-  plotFile3("LQR_2", wb_robot_get_time(), chassis_data.foot_speed_kalman, chassis_data.pitch, chassis_data.gyro_pitch);
+  plotFile3("LQR_2", wb_robot_get_time(), chassis_data.foot_speed_lpf, chassis_data.pitch, chassis_data.gyro_pitch);
 
   if (wb_robot_get_time() > 0)
   {

@@ -144,9 +144,15 @@ LQR参数含义
 //     {8.146555, 0.729250, 0.060783, 1.005222, 5.710594, 1.260828}
 // };//可以
 
+
+// fp32 balance_LQR[2][6] = {
+//     {-120, -1.2, -30, -60, 10, 2},
+//     {10, 1, 0.2, 0.3, 30, 2}
+// };//可以2
+
 fp32 balance_LQR[2][6] = {
-    {-120, -1.2, -30, -1100, 1, 0.5},
-    {10, 1, 0.1, 1, 7.065601, 1.728580}
+    {-120, -1.5, -25, -60, 10, 2},
+    {10, 1, 3, 3, 30, 2}
 };
 
 
@@ -177,15 +183,15 @@ fp32 balance_LQR[2][6] = {
 //     {0, 0,0, 5, 5, 0.0}
 // };  // 0.300000 Q[1 1 1000 100 15000 1] R[1000 250]
 
-
+//24/1/7 （手动调参）修复线速度问题
 
 
 void LQR_init()
 {
-    float coordinate_PD[3] = {10, 0, 0};
+    float coordinate_PD[3] = {10, 0, 1};
     PID_init(&LQR.coordinate_PD,PID_POSITION, coordinate_PD, 20, 0);
 
-    float stand_PID[3] = {130, 1, 1500};
+    float stand_PID[3] = {180, 1, 1700};
     PID_init(&LQR.stand_PID, PID_POSITION, stand_PID, 300, 100);
     LQR.stand_feed =130;               //前馈推力 等于 高度稳定状态下扭矩大小 130 15KG
 
@@ -207,7 +213,8 @@ void LQR_calc()
 {
 
 
-
+/****************************************************状态变量，无需再更改！！！*****************************************************/
+       
         //关节电机平衡所用扭矩 Tp
         //也就是说，这里的反馈只是定义了各个反馈量的正方向，而参数的正负已经定了，就是K阵的方向（取反）
         LQR.LQR_FEED_R[0][0] = (chassis_data.leg_angle[0]-pi/2 );//
@@ -216,6 +223,9 @@ void LQR_calc()
         LQR.LQR_FEED_R[0][3] = (-chassis_data.foot_speed_lpf);//方向待定--这里又是轮和Tp的方向不一样，所以在Tp上做特化
         LQR.LQR_FEED_R[0][4] = (chassis_data.pitch);
         LQR.LQR_FEED_R[0][5] = (chassis_data.gyro_pitch);
+
+
+/****************************************************状态变量，无需再更改！！！*****************************************************/
 
         LQR.LQR_OUT_R[0][0] = -balance_LQR[0][0] *  LQR.LQR_FEED_R[0][0];
         LQR.LQR_OUT_R[0][1] = -balance_LQR[0][1] *  LQR.LQR_FEED_R[0][1];
@@ -289,7 +299,7 @@ void LQR_calc()
             + LQR.LQR_OUT_R[1][5]
             - PID_calc(&LQR.yaw_PD, chassis_data.yaw_sum, chassis_data.yaw_set);
         printf("yaw %f yaw_set %f\n", chassis_data.yaw_sum, chassis_data.yaw_set);
-
+        printf("R_speed:%f L_speed:%f\n", chassis_data.wheel_speed[0], chassis_data.wheel_speed[1]);
         //
 
         LQR.LQR_OUT_L[1][0] = +balance_LQR[1][0] * LQR.LQR_FEED_L[0][0];
@@ -311,24 +321,22 @@ void LQR_calc()
         
         LQR_log();
 
-        printf("%f", chassis_data.leg_length_set[0]);
-
-        // for (int i = 0; i < 6;i++)
-        // {
-        //     printf("leg_R  :%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[0][i]);
-        // }
-        // for (int i = 0; i < 6;i++)
-        // {
-        //     printf("wheel_R:%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[1][i]);
-        // }
-        // for (int i = 0; i < 6;i++)
-        // {
-        //     printf("leg_L  :%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[0][i]);
-        // }
-        //  for (int i = 0; i < 6;i++)
-        // {
-        //     printf("wheel_L:%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[1][i]);
-        // }
+        for (int i = 0; i < 6;i++)
+        {
+            printf("leg_R  :%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[0][i]);
+        }
+        for (int i = 0; i < 6;i++)
+        {
+            printf("wheel_R:%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[1][i]);
+        }
+        for (int i = 0; i < 6;i++)
+        {
+            printf("leg_L  :%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[0][i]);
+        }
+         for (int i = 0; i < 6;i++)
+        {
+            printf("wheel_L:%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[1][i]);
+        }
 }
 
 void LQR_log()
