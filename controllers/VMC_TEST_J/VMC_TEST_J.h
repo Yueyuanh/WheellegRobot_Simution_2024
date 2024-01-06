@@ -36,6 +36,7 @@ struct chassis_data_t
 
     // 观测器数据
     float yaw, pitch, roll;                // 2 1 0
+    float yaw_sum, yaw_last, yaw_count;
     float accel_x, accel_y, accel_z;       // 0 1 2
     float gyro_yaw, gyro_pitch, gyro_roll; //
 

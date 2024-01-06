@@ -287,8 +287,8 @@ void LQR_calc()
             + LQR.LQR_OUT_R[1][3] 
             + LQR.LQR_OUT_R[1][4] 
             + LQR.LQR_OUT_R[1][5]
-            - PID_calc(&LQR.yaw_PD, chassis_data.yaw, chassis_data.yaw_set);
-        printf("yaw %f yaw_set %f\n", chassis_data.yaw, chassis_data.yaw_set);
+            - PID_calc(&LQR.yaw_PD, chassis_data.yaw_sum, chassis_data.yaw_set);
+        printf("yaw %f yaw_set %f\n", chassis_data.yaw_sum, chassis_data.yaw_set);
 
         //
 
@@ -306,7 +306,7 @@ void LQR_calc()
             + LQR.LQR_OUT_L[1][3] 
             + LQR.LQR_OUT_L[1][4] 
             + LQR.LQR_OUT_L[1][5]
-            + PID_calc(&LQR.yaw_PD, chassis_data.yaw, chassis_data.yaw_set);
+            + PID_calc(&LQR.yaw_PD, chassis_data.yaw_sum, chassis_data.yaw_set);
 
         
         LQR_log();

@@ -181,6 +181,20 @@ void chassis_feedback_update()
   chassis_data.accel_y = wb_accelerometer_get_values(chassis_tag.ACCEL)[2];
   chassis_data.accel_z = wb_accelerometer_get_values(chassis_tag.ACCEL)[1];
 
+  printf("\n%f %f\n", chassis_data.yaw_count,chassis_data.yaw-chassis_data.yaw_last);
+  if(chassis_data.yaw-chassis_data.yaw_last > pi)
+  {
+    chassis_data.yaw_count--;
+  }
+  else if(chassis_data.yaw-chassis_data.yaw_last < -pi)
+  {
+    chassis_data.yaw_count++;
+  }
+  chassis_data.yaw_sum = 2 * pi * chassis_data.yaw_count + chassis_data.yaw;
+  chassis_data.yaw_last = chassis_data.yaw;
+
+  
+
   // wheel
 
   //Torque
