@@ -70,8 +70,9 @@ struct chassis_data_t
     // 期望值设置
     float yaw_set, pitch_set, roll_set;       // 三轴角度设定
     float x_set, x_dot_set;                   // 水平距离设定
-    float leg_length_set[2]; // 双腿长度设置
-    float foot_distance_set;                  //前进距离设定
+    float base_length;                        // 基础腿长
+    float leg_length_set[2];                  // 双腿长度设置
+    float foot_distance_set;                  // 前进距离设定
 
     //LQR输出
     float K_balance_T[2];

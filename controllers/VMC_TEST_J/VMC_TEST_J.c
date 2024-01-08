@@ -280,8 +280,12 @@ void chassis_feedback_update()
   chassis_data.leg_angle[0] = VMC_LEG_R.Phi0 - chassis_data.pitch;
   chassis_data.leg_angle[1] = VMC_LEG_L.Phi0 - chassis_data.pitch;
 
-  chassis_data.leg_gyro[0] = VMC_LEG_R.Phi0_gyro - chassis_data.gyro_pitch;
-  chassis_data.leg_gyro[1] = VMC_LEG_L.Phi0_gyro - chassis_data.gyro_pitch;
+  chassis_data.leg_gyro[0] = VMC_LEG_R.Phi0_gyro + chassis_data.gyro_pitch;
+  chassis_data.leg_gyro[1] = VMC_LEG_L.Phi0_gyro + chassis_data.gyro_pitch;
+
+  PRINT(chassis_data.leg_gyro[0]);
+  PRINT(VMC_LEG_R.Phi0_gyro);
+  PRINT(chassis_data.gyro_pitch);
 
   //观测器
   VMC_LEG_R.L0_dot = differentiator(&VMC_LEG_R.d_L0,40,0.032,VMC_LEG_R.L0);
@@ -328,7 +332,8 @@ void chassis_control_loop()
 {
   fp32 Tp_R,Tp_L;
   fp32 F_R, F_L;
-//LQR
+
+  //LQR
   LQR_calc();
 
   Tp_R = chassis_data.K_balance_T[0] - chassis_data.K_coordinate_T;
@@ -337,7 +342,9 @@ void chassis_control_loop()
   F_R = -chassis_data.K_roll_T[0] + chassis_data.K_stand_T[0]+chassis_data.leg_stand_F;
   F_L =  chassis_data.K_roll_T[1] + chassis_data.K_stand_T[1]+chassis_data.leg_stand_F;
 
-//PID
+  printf("FR:%f FL:%f \n", -chassis_data.K_roll_T[0], chassis_data.K_roll_T[1]);
+
+  // PID
 
 
 
