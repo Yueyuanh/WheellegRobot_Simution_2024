@@ -26,8 +26,12 @@ struct LQR_t
     pid_type_def roll_PID;
     pid_type_def stand_PID;
     float stand_feed;//前馈推力
+
     pid_type_def yaw_PD;
+    float K_yaw_out;
+
     pid_type_def coordinate_PD;
+    pid_type_def leg_length_roll_PID;
 
     float LQR_FEED_R[2][6];
     float LQR_FEED_L[2][6];

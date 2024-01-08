@@ -19,10 +19,10 @@ void Keyboard_control()
     switch (Key)
     {
     case 87://w
-        chassis_data.foot_distance_set += 0.035;
+        chassis_data.foot_distance_set += 0.045;
         break;
     case 83://s
-        chassis_data.foot_distance_set -= 0.035;
+        chassis_data.foot_distance_set -= 0.045;
         break;
 
     case 65://a

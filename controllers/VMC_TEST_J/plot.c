@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 
+
 void plotInit()
 {
     removeFile("Rleg_d_L0");
@@ -138,3 +139,4 @@ void removeFile(const char *fileName)
     }
 
 }
+

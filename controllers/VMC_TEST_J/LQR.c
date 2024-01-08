@@ -150,11 +150,20 @@ LQR参数含义
 //     {10, 1, 0.2, 0.3, 30, 2}
 // };//可以2
 
-fp32 balance_LQR[2][6] = {
-    {-120, -1.5, -25, -60, 10, 2},
-    {10, 1, 3, 3, 30, 2}
-};
+// fp32 balance_LQR[2][6] = {
+//     {-120, -10, -45, -80, 20, 1},
+//     {10, 1, 3, 3, 30, 2}
+// };
 
+fp32 balance_LQR[2][6] = {
+    {-41.478486, -1.897065, -5.015103, -11.993232, 4.045262, 0.990281},
+    {24.120284, 1.086957, 4.723848, 10.880311, 11.712758, 1.834809}
+};  // 0.250000 Q[1 1 50 200 100 1] R[1.500000e+00 5.500000e-01]
+
+// fp32 balance_LQR[2][6] = {
+//     {-46.698120, -1.830391, -20.389028, -16.936198, 12.983647, 1.514255},
+//     {29.767134, 1.152653, 18.361650, 14.327175, 57.668879, 3.820700}
+// };  // 0.250000 Q[1 1 500 100 1000 1] R[1 2.500000e-01]
 
 //0.2
 // fp32 balance_LQR[2][6] = {
@@ -184,159 +193,165 @@ fp32 balance_LQR[2][6] = {
 // };  // 0.300000 Q[1 1 1000 100 15000 1] R[1000 250]
 
 //24/1/7 （手动调参）修复线速度问题
-
+//24/1/8  修复腿角速度问题
 
 void LQR_init()
 {
-    float coordinate_PD[3] = {10, 0, 1};
+    float coordinate_PD[3] = {0, 0, 0};
     PID_init(&LQR.coordinate_PD,PID_POSITION, coordinate_PD, 20, 0);
 
-    float stand_PID[3] = {180, 1, 1700};
+    float stand_PID[3] = {350, 1, 2000};
     PID_init(&LQR.stand_PID, PID_POSITION, stand_PID, 300, 100);
     LQR.stand_feed =130;               //前馈推力 等于 高度稳定状态下扭矩大小 130 15KG
 
-    float roll_PD[3] = {100, 0, 00};//500 0 100
+    // float stand_PID[3] = {1000, 0,0};
+    // PID_init(&LQR.stand_PID, PID_POSITION, stand_PID, 300, 100);
+    // LQR.stand_feed =0;               //前馈推力
+
+    //这个roll是用来补偿转弯时的偏向力
+    float roll_PD[3] = {100, 0, 0};//500 0 100             
     PID_init(&LQR.roll_PID, PID_POSITION, roll_PD, 300, 100);
 
-    float yaw_PD[3] = {5, 0, 20};
+    //转向环，直接给到轮子的扭矩
+    float yaw_PD[3] = {10, 0, 50};
     PID_init(&LQR.yaw_PD, PID_POSITION, yaw_PD, 2, 1);
+
+    //腿长自适应应该对应的腿长设定值
+    float leg_length_roll_PID[3] = {10,0,0};
+    PID_init(&LQR.leg_length_roll_PID, PID_POSITION, leg_length_roll_PID, 0.256, 0.1);
+
 
     chassis_data.foot_distance_set = 0;
     chassis_data.pitch_set = 0;
     chassis_data.yaw_set = chassis_data.yaw;
     chassis_data.roll_set = 0;
-    chassis_data.leg_length_set[0] = 0.25;
-    chassis_data.leg_length_set[1] = 0.25;
+    chassis_data.base_length = 0.25;
 }
 
 void LQR_calc()
 {
 
 
-/****************************************************状态变量，无需再更改！！！*****************************************************/
-       
-        //关节电机平衡所用扭矩 Tp
-        //也就是说，这里的反馈只是定义了各个反馈量的正方向，而参数的正负已经定了，就是K阵的方向（取反）
-        LQR.LQR_FEED_R[0][0] = (chassis_data.leg_angle[0]-pi/2 );//
-        LQR.LQR_FEED_R[0][1] = (-chassis_data.leg_gyro[0]);//如何确定？单给轮的pitch，然后leg_angle给点，再确定leg_gyro的方向，这里改的并不是参数，而是物理系统的方向
-        LQR.LQR_FEED_R[0][2] = (chassis_data.foot_distance_set - chassis_data.foot_distance);
-        LQR.LQR_FEED_R[0][3] = (-chassis_data.foot_speed_lpf);//方向待定--这里又是轮和Tp的方向不一样，所以在Tp上做特化
-        LQR.LQR_FEED_R[0][4] = (chassis_data.pitch);
-        LQR.LQR_FEED_R[0][5] = (chassis_data.gyro_pitch);
-
-
-/****************************************************状态变量，无需再更改！！！*****************************************************/
-
-        LQR.LQR_OUT_R[0][0] = -balance_LQR[0][0] *  LQR.LQR_FEED_R[0][0];
-        LQR.LQR_OUT_R[0][1] = -balance_LQR[0][1] *  LQR.LQR_FEED_R[0][1];
-        LQR.LQR_OUT_R[0][2] = -balance_LQR[0][2] * -LQR.LQR_FEED_R[0][2];
-        LQR.LQR_OUT_R[0][3] = -balance_LQR[0][3] * -LQR.LQR_FEED_R[0][3];
-        LQR.LQR_OUT_R[0][4] = -balance_LQR[0][4] *  LQR.LQR_FEED_R[0][4];
-        LQR.LQR_OUT_R[0][5] = -balance_LQR[0][5] *  LQR.LQR_FEED_R[0][5];
-
-        chassis_data.K_balance_T[0] = 
-        + LQR.LQR_OUT_R[0][0] 
-        + LQR.LQR_OUT_R[0][1] 
-        + LQR.LQR_OUT_R[0][2] 
-        + LQR.LQR_OUT_R[0][3] 
-        + LQR.LQR_OUT_R[0][4] 
-        + LQR.LQR_OUT_R[0][5];
-        
-        //
-        LQR.LQR_FEED_L[0][0] = (chassis_data.leg_angle[1]-pi/2);//
-        LQR.LQR_FEED_L[0][1] = (-chassis_data.leg_gyro[1]);
-        LQR.LQR_FEED_L[0][2] = (chassis_data.foot_distance_set - chassis_data.foot_distance);
-        LQR.LQR_FEED_L[0][3] = (-chassis_data.foot_speed_lpf);
-        LQR.LQR_FEED_L[0][4] = (chassis_data.pitch);
-        LQR.LQR_FEED_L[0][5] = (chassis_data.gyro_pitch);
-
-        LQR.LQR_OUT_L[0][0] = -balance_LQR[0][0] *  LQR.LQR_FEED_L[0][0];
-        LQR.LQR_OUT_L[0][1] = -balance_LQR[0][1] *  LQR.LQR_FEED_L[0][1];
-        LQR.LQR_OUT_L[0][2] = -balance_LQR[0][2] * -LQR.LQR_FEED_L[0][2];
-        LQR.LQR_OUT_L[0][3] = -balance_LQR[0][3] * -LQR.LQR_FEED_L[0][3];
-        LQR.LQR_OUT_L[0][4] = -balance_LQR[0][4] *  LQR.LQR_FEED_L[0][4];
-        LQR.LQR_OUT_L[0][5] = -balance_LQR[0][5] *  LQR.LQR_FEED_L[0][5];
-
-        chassis_data.K_balance_T[1] = 
-        + LQR.LQR_OUT_L[0][0] 
-        + LQR.LQR_OUT_L[0][1] 
-        + LQR.LQR_OUT_L[0][2] 
-        + LQR.LQR_OUT_L[0][3] 
-        + LQR.LQR_OUT_L[0][4] 
-        + LQR.LQR_OUT_L[0][5];
-
-
-
-
-        // 关节电机协调扭矩
+/*****************************************************************PID****************************************************************/
+        // 关节电机协调扭矩 Tp
         chassis_data.K_coordinate_T = PID_calc(&LQR.coordinate_PD, chassis_data.leg_angle[0] - chassis_data.leg_angle[1], 0);
 
-        // F
-        // stand
-        chassis_data.K_stand_T[0] = LQR.stand_feed + PID_calc(&LQR.stand_PID, chassis_data.leg_length[0], chassis_data.leg_length_set[0]);
-        chassis_data.K_stand_T[1] = LQR.stand_feed + PID_calc(&LQR.stand_PID, chassis_data.leg_length[1], chassis_data.leg_length_set[1]);
+        //leg_length
+        // if(chassis_data.roll>=0.1)
+        // {
+        //     chassis_data.leg_length_set[0] = chassis_data.base_length - sin(0.5*chassis_data.roll) * 0.3;
+        //     chassis_data.leg_length_set[1] = chassis_data.base_length;
+        // }
+        // else if(chassis_data.roll<-0.1)
+        // {
+        //     chassis_data.leg_length_set[0] = chassis_data.base_length;
+        //     chassis_data.leg_length_set[1] = chassis_data.base_length - sin(0.5*chassis_data.roll) * 0.3;
+        // }
+        // else
+        // {
+            chassis_data.leg_length_set[0] = chassis_data.base_length;
+            chassis_data.leg_length_set[1] = chassis_data.base_length;
 
-        // roll
-        chassis_data.K_roll_T[0] = PID_calc(&LQR.roll_PID, chassis_data.roll, chassis_data.roll_set);
-        chassis_data.K_roll_T[1] = PID_calc(&LQR.roll_PID, chassis_data.roll, chassis_data.roll_set);
+        //}
 
-        // 驱动轮电机
+            PRINT(chassis_data.leg_length_set[0]);
+            PRINT(chassis_data.leg_length_set[1]);
+            PRINT(chassis_data.roll);
 
-        //这里，本身leg和wheel公用一个feedback
-        LQR.LQR_OUT_R[1][0] = +balance_LQR[1][0] * LQR.LQR_FEED_R[0][0];//这里轮和leg_angle是正反馈，但是参数是负反馈，所以需要反一下
-        LQR.LQR_OUT_R[1][1] = +balance_LQR[1][1] * LQR.LQR_FEED_R[0][1];
-        LQR.LQR_OUT_R[1][2] = -balance_LQR[1][2] * LQR.LQR_FEED_R[0][2];
-        LQR.LQR_OUT_R[1][3] = -balance_LQR[1][3] * LQR.LQR_FEED_R[0][3];
-        LQR.LQR_OUT_R[1][4] = -balance_LQR[1][4] * LQR.LQR_FEED_R[0][4];
-        LQR.LQR_OUT_R[1][5] = -balance_LQR[1][5] * LQR.LQR_FEED_R[0][5];
+            // stand F
+            chassis_data.K_stand_T[0] = LQR.stand_feed + PID_calc(&LQR.stand_PID, chassis_data.leg_length[0], chassis_data.leg_length_set[0]);
+            chassis_data.K_stand_T[1] = LQR.stand_feed + PID_calc(&LQR.stand_PID, chassis_data.leg_length[1], chassis_data.leg_length_set[1]);
 
-        chassis_data.Wheel_motor_T[0] =
-            + LQR.LQR_OUT_R[1][0] 
-            + LQR.LQR_OUT_R[1][1] 
-            + LQR.LQR_OUT_R[1][2] 
-            + LQR.LQR_OUT_R[1][3] 
-            + LQR.LQR_OUT_R[1][4] 
-            + LQR.LQR_OUT_R[1][5]
-            - PID_calc(&LQR.yaw_PD, chassis_data.yaw_sum, chassis_data.yaw_set);
-        printf("yaw %f yaw_set %f\n", chassis_data.yaw_sum, chassis_data.yaw_set);
-        printf("R_speed:%f L_speed:%f\n", chassis_data.wheel_speed[0], chassis_data.wheel_speed[1]);
-        //
+            // roll
+            chassis_data.K_roll_T[0] = PID_calc(&LQR.roll_PID, chassis_data.roll, chassis_data.roll_set);
+            chassis_data.K_roll_T[1] = PID_calc(&LQR.roll_PID, chassis_data.roll, chassis_data.roll_set);
 
-        LQR.LQR_OUT_L[1][0] = +balance_LQR[1][0] * LQR.LQR_FEED_L[0][0];
-        LQR.LQR_OUT_L[1][1] = +balance_LQR[1][1] * LQR.LQR_FEED_L[0][1];
-        LQR.LQR_OUT_L[1][2] = -balance_LQR[1][2] * LQR.LQR_FEED_L[0][2];
-        LQR.LQR_OUT_L[1][3] = -balance_LQR[1][3] * LQR.LQR_FEED_L[0][3];
-        LQR.LQR_OUT_L[1][4] = -balance_LQR[1][4] * LQR.LQR_FEED_L[0][4];
-        LQR.LQR_OUT_L[1][5] = -balance_LQR[1][5] * LQR.LQR_FEED_L[0][5];
+            // yaw 驱动轮电机
+            LQR.K_yaw_out = PID_calc(&LQR.yaw_PD, chassis_data.yaw_sum, chassis_data.yaw_set);
+            //printf("yaw set:%f yaw:%f out:%f\n", chassis_data.yaw_set, chassis_data.yaw_sum, LQR.K_yaw_out);
 
-        chassis_data.Wheel_motor_T[1] =
-            + LQR.LQR_OUT_L[1][0] 
-            + LQR.LQR_OUT_L[1][1] 
-            + LQR.LQR_OUT_L[1][2] 
-            + LQR.LQR_OUT_L[1][3] 
-            + LQR.LQR_OUT_L[1][4] 
-            + LQR.LQR_OUT_L[1][5]
-            + PID_calc(&LQR.yaw_PD, chassis_data.yaw_sum, chassis_data.yaw_set);
+            /******************************************************************PID*********************************************************/
 
-        
-        LQR_log();
+            /****************************************************状态变量，无需再更改！！！*****************************************************/
 
-        for (int i = 0; i < 6;i++)
-        {
-            printf("leg_R  :%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[0][i]);
-        }
-        for (int i = 0; i < 6;i++)
-        {
-            printf("wheel_R:%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[1][i]);
-        }
-        for (int i = 0; i < 6;i++)
-        {
-            printf("leg_L  :%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[0][i]);
-        }
-         for (int i = 0; i < 6;i++)
-        {
-            printf("wheel_L:%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[1][i]);
-        }
+            // 关节电机平衡所用扭矩 Tp
+            // 也就是说，这里的反馈只是定义了各个反馈量的正方向，而参数的正负已经定了，就是K阵的方向（取反）
+            LQR.LQR_FEED_R[0][0] = (chassis_data.leg_angle[0] - pi / 2); //
+            LQR.LQR_FEED_R[0][1] = (-chassis_data.leg_gyro[0]);          // 如何确定？单给轮的pitch，然后leg_angle给点，再确定leg_gyro的方向，这里改的并不是参数，而是物理系统的方向
+            LQR.LQR_FEED_R[0][2] = (chassis_data.foot_distance_set - chassis_data.foot_distance);
+            LQR.LQR_FEED_R[0][3] = (-chassis_data.foot_speed_lpf); // 方向待定--这里又是轮和Tp的方向不一样，所以在Tp上做特化
+            LQR.LQR_FEED_R[0][4] = (chassis_data.pitch);
+            LQR.LQR_FEED_R[0][5] = (chassis_data.gyro_pitch);
+
+            /****************************************************状态变量，无需再更改！！！*****************************************************/
+
+            LQR.LQR_OUT_R[0][0] = -balance_LQR[0][0] * LQR.LQR_FEED_R[0][0];
+            LQR.LQR_OUT_R[0][1] = -balance_LQR[0][1] * LQR.LQR_FEED_R[0][1];
+            LQR.LQR_OUT_R[0][2] = -balance_LQR[0][2] * -LQR.LQR_FEED_R[0][2];
+            LQR.LQR_OUT_R[0][3] = -balance_LQR[0][3] * -LQR.LQR_FEED_R[0][3];
+            LQR.LQR_OUT_R[0][4] = -balance_LQR[0][4] * LQR.LQR_FEED_R[0][4];
+            LQR.LQR_OUT_R[0][5] = -balance_LQR[0][5] * LQR.LQR_FEED_R[0][5];
+
+            chassis_data.K_balance_T[0] =
+                +LQR.LQR_OUT_R[0][0] + LQR.LQR_OUT_R[0][1] + LQR.LQR_OUT_R[0][2] + LQR.LQR_OUT_R[0][3] + LQR.LQR_OUT_R[0][4] + LQR.LQR_OUT_R[0][5];
+
+            //
+            LQR.LQR_FEED_L[0][0] = (chassis_data.leg_angle[1] - pi / 2);
+            LQR.LQR_FEED_L[0][1] = (-chassis_data.leg_gyro[1]);
+            LQR.LQR_FEED_L[0][2] = (chassis_data.foot_distance_set - chassis_data.foot_distance);
+            LQR.LQR_FEED_L[0][3] = (-chassis_data.foot_speed_lpf);
+            LQR.LQR_FEED_L[0][4] = (chassis_data.pitch);
+            LQR.LQR_FEED_L[0][5] = (chassis_data.gyro_pitch);
+
+            LQR.LQR_OUT_L[0][0] = -balance_LQR[0][0] * LQR.LQR_FEED_L[0][0];
+            LQR.LQR_OUT_L[0][1] = -balance_LQR[0][1] * LQR.LQR_FEED_L[0][1];
+            LQR.LQR_OUT_L[0][2] = -balance_LQR[0][2] * -LQR.LQR_FEED_L[0][2];
+            LQR.LQR_OUT_L[0][3] = -balance_LQR[0][3] * -LQR.LQR_FEED_L[0][3];
+            LQR.LQR_OUT_L[0][4] = -balance_LQR[0][4] * LQR.LQR_FEED_L[0][4];
+            LQR.LQR_OUT_L[0][5] = -balance_LQR[0][5] * LQR.LQR_FEED_L[0][5];
+
+            chassis_data.K_balance_T[1] =
+                +LQR.LQR_OUT_L[0][0] + LQR.LQR_OUT_L[0][1] + LQR.LQR_OUT_L[0][2] + LQR.LQR_OUT_L[0][3] + LQR.LQR_OUT_L[0][4] + LQR.LQR_OUT_L[0][5];
+
+            // 这里，本身leg和wheel公用一个feedback
+            LQR.LQR_OUT_R[1][0] = +balance_LQR[1][0] * LQR.LQR_FEED_R[0][0]; // 这里轮和leg_angle是正反馈，但是参数是负反馈，所以需要反一下
+            LQR.LQR_OUT_R[1][1] = +balance_LQR[1][1] * LQR.LQR_FEED_R[0][1];
+            LQR.LQR_OUT_R[1][2] = -balance_LQR[1][2] * LQR.LQR_FEED_R[0][2];
+            LQR.LQR_OUT_R[1][3] = -balance_LQR[1][3] * LQR.LQR_FEED_R[0][3];
+            LQR.LQR_OUT_R[1][4] = -balance_LQR[1][4] * LQR.LQR_FEED_R[0][4];
+            LQR.LQR_OUT_R[1][5] = -balance_LQR[1][5] * LQR.LQR_FEED_R[0][5];
+
+            chassis_data.Wheel_motor_T[0] =
+                +LQR.LQR_OUT_R[1][0] + LQR.LQR_OUT_R[1][1] + LQR.LQR_OUT_R[1][2] + LQR.LQR_OUT_R[1][3] + LQR.LQR_OUT_R[1][4] + LQR.LQR_OUT_R[1][5] - LQR.K_yaw_out;
+
+            LQR.LQR_OUT_L[1][0] = +balance_LQR[1][0] * LQR.LQR_FEED_L[0][0];
+            LQR.LQR_OUT_L[1][1] = +balance_LQR[1][1] * LQR.LQR_FEED_L[0][1];
+            LQR.LQR_OUT_L[1][2] = -balance_LQR[1][2] * LQR.LQR_FEED_L[0][2];
+            LQR.LQR_OUT_L[1][3] = -balance_LQR[1][3] * LQR.LQR_FEED_L[0][3];
+            LQR.LQR_OUT_L[1][4] = -balance_LQR[1][4] * LQR.LQR_FEED_L[0][4];
+            LQR.LQR_OUT_L[1][5] = -balance_LQR[1][5] * LQR.LQR_FEED_L[0][5];
+
+            chassis_data.Wheel_motor_T[1] =
+                +LQR.LQR_OUT_L[1][0] + LQR.LQR_OUT_L[1][1] + LQR.LQR_OUT_L[1][2] + LQR.LQR_OUT_L[1][3] + LQR.LQR_OUT_L[1][4] + LQR.LQR_OUT_L[1][5] + LQR.K_yaw_out;
+
+            LQR_log();
+
+            // for (int i = 0; i < 6;i++)
+            // {
+            //     printf("leg_R  :%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[0][i]);
+            // }
+            // for (int i = 0; i < 6;i++)
+            // {
+            //     printf("wheel_R:%d  %f  %f\n", i, LQR.LQR_FEED_R[0][i], LQR.LQR_OUT_R[1][i]);
+            // }
+            // for (int i = 0; i < 6;i++)
+            // {
+            //     printf("leg_L  :%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[0][i]);
+            // }
+            //  for (int i = 0; i < 6;i++)
+            // {
+            //     printf("wheel_L:%d  %f  %f\n", i, LQR.LQR_FEED_L[0][i], LQR.LQR_OUT_L[1][i]);
+            // }
 }
 
 void LQR_log()

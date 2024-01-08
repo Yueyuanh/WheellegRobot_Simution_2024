@@ -1,7 +1,7 @@
 #ifndef PLOT_H
 #define PLOT_H
 
-
+#define PRINT(var) printf("%s = %f\n", #var, var)
 
 void plotFile(const char *fileName, float input_x, float input_y);
 void plotFile3(const char *fileName, float input_t, float input_x, float input_y, float input_z);
