@@ -56,7 +56,6 @@ plot(lqr_2_t, foot_speed);
 hold on
 dt=diff(foot_dis)./diff(lqr_1_t);
 dx=lqr_1_t(1:length(dt));
-dt=dt*0.06;
 plot(dx,dt);
 
 % 添加标题和标签

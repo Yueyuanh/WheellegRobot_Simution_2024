@@ -37,7 +37,8 @@
         "kalmanfilter.h": "c",
         "vmc_test_j.h": "c",
         "camera.h": "c",
-        "plot.h": "c"
+        "plot.h": "c",
+        "struct_typedef.h": "c"
     }, // 格式化时调整include的顺序（按字母排序）
     
     

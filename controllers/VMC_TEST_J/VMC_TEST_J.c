@@ -229,7 +229,7 @@ void chassis_feedback_update()
   // foot speed
   chassis_data.foot_speed = (chassis_data.wheel_speed[0] + chassis_data.wheel_speed[1]) / 2;//注意电机速度方向,注意是线速度
 
-  const float foot_speed_lpf_const = 0.95;
+  const float foot_speed_lpf_const = 0.9;
   chassis_data.foot_speed_lpf = (1-foot_speed_lpf_const) * chassis_data.foot_speed + foot_speed_lpf_const * chassis_data.foot_speed_last;
   chassis_data.foot_speed_last = chassis_data.foot_speed_lpf;
   printf("speed_lpf:%f\n", chassis_data.foot_speed_lpf);
@@ -283,9 +283,9 @@ void chassis_feedback_update()
   chassis_data.leg_gyro[0] = VMC_LEG_R.Phi0_gyro + chassis_data.gyro_pitch;
   chassis_data.leg_gyro[1] = VMC_LEG_L.Phi0_gyro + chassis_data.gyro_pitch;
 
-  PRINT(chassis_data.leg_gyro[0]);
-  PRINT(VMC_LEG_R.Phi0_gyro);
-  PRINT(chassis_data.gyro_pitch);
+  // PRINT(chassis_data.leg_gyro[0]);
+  // PRINT(VMC_LEG_R.Phi0_gyro);
+  // PRINT(chassis_data.gyro_pitch);
 
   //观测器
   VMC_LEG_R.L0_dot = differentiator(&VMC_LEG_R.d_L0,40,0.032,VMC_LEG_R.L0);
