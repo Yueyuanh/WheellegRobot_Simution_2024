@@ -1,13 +1,12 @@
 clear all
 
-
-% 读取文本文件
+%% 读取文本文件
 lqr_1_data = load('LQR_1.txt');
 lqr_2_data = load('LQR_2.txt');
 lqr_out_data=load('LQR_OUT.txt');
+set_state=load('Set_state.txt');
 
-
-% 提取数据
+%% 提取数据
 lqr_1_t = lqr_1_data(:, 1);
 lqr_2_t = lqr_2_data(:, 1);
 lqr_out_t = lqr_out_data(:, 1);
@@ -24,7 +23,12 @@ leg_r_T1=lqr_out_data(:,2);
 leg_r_T2=lqr_out_data(:,3);
 wheel_r_T=lqr_out_data(:,4);
 
-% 绘制曲线
+distance_set=set_state(:,2);
+yaw_set=set_state(:,3);
+
+%% 绘制曲线
+figure;
+%% 摆角
 subplot(2,2,1);
 plot(lqr_1_t, leg_angle);
 hold on
@@ -48,7 +52,7 @@ ylabel('rad rad/s');
 grid on;
 
 
-
+%% 距离速度
 subplot(2,2,2);
 plot(lqr_1_t,foot_dis);
 hold on
@@ -56,8 +60,9 @@ plot(lqr_2_t, foot_speed);
 hold on
 dt=diff(foot_dis)./diff(lqr_1_t);
 dx=lqr_1_t(1:length(dt));
-dt=dt*0.06;
 plot(dx,dt);
+hold on
+plot(lqr_1_t,distance_set)
 
 % 添加标题和标签
 title('LQR状态变量 距离/速度');
@@ -67,7 +72,7 @@ ylabel('m m/s');
 % 显示网格
 grid on;
 
-
+%% pitch gyro
 subplot(2,2,3);
 hold on
 plot(lqr_2_t,pitch);
@@ -86,6 +91,7 @@ ylabel('rad rad/s');
 % 显示网格
 grid on;
 
+%% 电机输出
 subplot(2,2,4);
 plot(lqr_out_t, leg_r_T1);
 hold on

@@ -29,8 +29,13 @@ struct chassis_tag_t
 
 struct chassis_data_t
 {
-    //观测器结构体
+    //滤波器结构体
     differ_type_def wheel_speed_r, wheel_speed_l;
+
+    LPF_type_def LPF_foot_speed;
+    LPF_type_def LPF_gyro;
+    LPF_type_def LPF_leg_gyro;
+
     Kalman_fir_t kalman_speed;
     Kalman_sec_t kalman_distance;
 
@@ -60,7 +65,6 @@ struct chassis_data_t
 
     float foot_speed;
     float foot_speed_lpf;
-    float foot_speed_last;
     float foot_speed_kalman;
     float foot_distance;
 

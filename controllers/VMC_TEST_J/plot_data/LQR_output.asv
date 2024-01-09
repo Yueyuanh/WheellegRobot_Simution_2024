@@ -35,7 +35,6 @@ lqr_l_14=lqr_wl(:,6);
 lqr_l_15=lqr_wl(:,7);
 
 %%
-figure;
 %срмх╧ь╫зе╓╬ь
 
 subplot(2,2,1);

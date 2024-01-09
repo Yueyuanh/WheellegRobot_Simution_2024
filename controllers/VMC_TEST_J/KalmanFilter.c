@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file    kalman filter.c
- * @author  Yue yuanhao 
+ * @author  Yue Yuanhao 
  * @version V0.0.1
  * @date    2023/12/29
  * @brief   KalmanFilter test
