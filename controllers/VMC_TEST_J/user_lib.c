@@ -30,7 +30,7 @@ float differentiator(differ_type_def *differ ,float bandwidth,float time_cons,fl
   
   return differ->y[1];
 }
-
+/***********************************************************************************************************************/
 
 /***********************************************************************************************************************
   * @brief          一阶低通滤波器初始化
@@ -53,5 +53,8 @@ float differentiator(differ_type_def *differ ,float bandwidth,float time_cons,fl
  fp32 LPF_calc(LPF_type_def *LPF,fp32 input)
  {
    LPF->input = input;
-   LPF->output = LPF->num / (LPF->num + LPF->frame_period) * LPF->output + LPF->frame_period / (LPF->num + LPF->frame_period) * LPF->input;
+   LPF->output = (1 - LPF->num) * LPF->input + LPF->num * LPF->output;
+   //LPF->output = LPF->num / (LPF->num + LPF->frame_period) * LPF->output + LPF->frame_period / (LPF->num + LPF->frame_period) * LPF->input;
+   return LPF->output;
  }
+ /***********************************************************************************************************************/

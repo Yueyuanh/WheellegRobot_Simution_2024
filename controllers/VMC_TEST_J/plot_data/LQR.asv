@@ -61,8 +61,6 @@ hold on
 dt=diff(foot_dis)./diff(lqr_1_t);
 dx=lqr_1_t(1:length(dt));
 plot(dx,dt);
-hold on
-plot(lqr_1_t,distance_set)
 
 % 添加标题和标签
 title('LQR状态变量 距离/速度');
@@ -91,7 +89,7 @@ ylabel('rad rad/s');
 % 显示网格
 grid on;
 
-%% 电机输出
+%% 
 subplot(2,2,4);
 plot(lqr_out_t, leg_r_T1);
 hold on

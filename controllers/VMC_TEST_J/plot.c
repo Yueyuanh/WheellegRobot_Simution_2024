@@ -21,6 +21,7 @@ void plotInit()
     removeFile("LQR_L");
     removeFile("LQR_WR");
     removeFile("LQR_WL");
+    removeFile("Set_state");
     //KalmanFilter
 }
 
@@ -29,7 +30,7 @@ void plotFile(const char *fileName,float input_x,float input_y)
     FILE *file;
     char fileFolder[100] = "plot_data/";
     char fileFormat[10] = ".txt";
-    int fileNum;
+    //int fileNum;
     strcat(fileFolder, fileName);
     strcat(fileFolder, fileFormat);
 
@@ -48,7 +49,7 @@ void plotFile3(const char *fileName,float input_t,float input_x,float input_y,fl
     FILE *file;
     char fileFolder[100] = "plot_data/";
     char fileFormat[10] = ".txt";
-    int fileNum;
+    //int fileNum;
     strcat(fileFolder, fileName);
     strcat(fileFolder, fileFormat);
 
@@ -66,7 +67,7 @@ void plotFile6(const char *fileName,float input_t,float input_x,float input_y,fl
     FILE *file;
     char fileFolder[100] = "plot_data/";
     char fileFormat[10] = ".txt";
-    int fileNum;
+    //int fileNum;
     strcat(fileFolder, fileName);
     strcat(fileFolder, fileFormat);
 
@@ -97,38 +98,38 @@ void numFile(const char *fileName,float input_num)
 
 }
 
-int readNum(const char *fileName)
-{
-    FILE *file;
-    char buffer[100];  // 用于存储读取的数据，根据实际情况调整大小
+// int readNum(const char *fileName)
+// {
+//     FILE *file;
+//     char buffer[100];  // 用于存储读取的数据，根据实际情况调整大小
 
-    char fileFolder[100] = "plot_data/";
-    char fileFormat[10] = ".txt";
+//     char fileFolder[100] = "plot_data/";
+//     char fileFormat[10] = ".txt";
 
-    strcat(fileFolder, fileName);
-    strcat(fileFolder, fileFormat);
+//     strcat(fileFolder, fileName);
+//     strcat(fileFolder, fileFormat);
 
-    // 打开文件
-    file = fopen(fileFolder, "r");
-    if (file == NULL) {
-        perror("无法打开");
-    }
+//     // 打开文件
+//     file = fopen(fileFolder, "r");
+//     if (file == NULL) {
+//         perror("无法打开");
+//     }
 
-    // 读取文件内容
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        return buffer;
-    }
+//     // 读取文件内容
+//     while (fgets(buffer, sizeof(buffer), file) != NULL) {
+//         return buffer;
+//     }
 
-    // 关闭文件
-    fclose(file);
+//     // 关闭文件
+//     fclose(file);
 
-}
+// }
 
 void removeFile(const char *fileName)
 {
     char fileFolder[100] = "plot_data/";
     char fileFormat[10] = ".txt";
-    int fileNum;
+    //int fileNum;
     strcat(fileFolder, fileName);
     strcat(fileFolder, fileFormat);
 

@@ -41,4 +41,6 @@ typedef struct
 void LPF_init(LPF_type_def *LPF, fp32 frame_period, const fp32 num);
 fp32 LPF_calc(LPF_type_def *LPF, fp32 input);
 
+
+
 #endif

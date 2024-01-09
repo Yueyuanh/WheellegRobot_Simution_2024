@@ -146,15 +146,31 @@ void chassis_init()
   supervisor.leg_motor_pos[2] = wb_supervisor_node_get_field(supervisor.leg_motor[2], "position");
   supervisor.leg_motor_pos[3] = wb_supervisor_node_get_field(supervisor.leg_motor[3], "position");
 
+  //滤波器初始化
+
+  //微分器
+  differentiator_init(&chassis_data.wheel_speed_r);
+  differentiator_init(&chassis_data.wheel_speed_l);
+
+  //低通滤波器
+  LPF_init(&chassis_data.LPF_foot_speed, 0.032, 0.9);//嵌入式代码定义一个滤波器参数结构体，方便在Debug里调试用
+  LPF_init(&chassis_data.LPF_gyro, 0.032, 0);
+  LPF_init(&chassis_data.LPF_leg_gyro, 0.032, 0);
+
+  //卡尔曼滤波
+  Kalman_fir_init(&chassis_data.kalman_speed,10,10);
+  Kalman_sec_init(&chassis_data.kalman_distance, 0.08, 0.08);
+
+
+
+
+
   //LQR init
   LQR_init();
   
   // VMC init
   VMC_init();
-  differentiator_init(&chassis_data.wheel_speed_r);
-  differentiator_init(&chassis_data.wheel_speed_l);
-  Kalman_fir_init(&chassis_data.kalman_speed,10,10);
-  Kalman_sec_init(&chassis_data.kalman_distance, 0.08, 0.08);
+
 }
 
 void chassis_mode_set()
@@ -181,6 +197,7 @@ void chassis_feedback_update()
   chassis_data.accel_y = wb_accelerometer_get_values(chassis_tag.ACCEL)[2];
   chassis_data.accel_z = wb_accelerometer_get_values(chassis_tag.ACCEL)[1];
 
+  //相对原点角度
   if(chassis_data.yaw-chassis_data.yaw_last > pi)
   {
     chassis_data.yaw_count--;
@@ -192,7 +209,8 @@ void chassis_feedback_update()
   chassis_data.yaw_sum = 2 * pi * chassis_data.yaw_count + chassis_data.yaw;
   chassis_data.yaw_last = chassis_data.yaw;
 
-  
+  // LPF gyro
+  chassis_data.gyro_pitch = LPF_calc(&chassis_data.LPF_gyro, chassis_data.gyro_pitch);
 
   // wheel
 
@@ -208,12 +226,6 @@ void chassis_feedback_update()
   chassis_data.wheel_speed[0] = differentiator(&chassis_data.wheel_speed_r,40,0.032,chassis_data.wheel_position[0]);
   chassis_data.wheel_speed[1] = differentiator(&chassis_data.wheel_speed_l,40,0.032,chassis_data.wheel_position[1]);
 
-  // const float lpf_const = 0.9;
-  // chassis_data.wheel_speed_lpf[0] = lpf_const * chassis_data.wheel_speed[0] + (1 - lpf_const) * chassis_data.wheel_speed_last[0];
-  // chassis_data.wheel_speed_lpf[1] = lpf_const * chassis_data.wheel_speed[1] + (1 - lpf_const) * chassis_data.wheel_speed_last[1];
-
-  // chassis_data.wheel_speed_last[0] = chassis_data.wheel_speed[0];
-  // chassis_data.wheel_speed_last[1] = chassis_data.wheel_speed[1];
 
 
   // wheel turns
@@ -229,10 +241,8 @@ void chassis_feedback_update()
   // foot speed
   chassis_data.foot_speed = (chassis_data.wheel_speed[0] + chassis_data.wheel_speed[1]) / 2;//注意电机速度方向,注意是线速度
 
-  const float foot_speed_lpf_const = 0.9;
-  chassis_data.foot_speed_lpf = (1-foot_speed_lpf_const) * chassis_data.foot_speed + foot_speed_lpf_const * chassis_data.foot_speed_last;
-  chassis_data.foot_speed_last = chassis_data.foot_speed_lpf;
-  printf("speed_lpf:%f\n", chassis_data.foot_speed_lpf);
+  // LPF foot speed
+  chassis_data.foot_speed_lpf = LPF_calc(&chassis_data.LPF_foot_speed,chassis_data.foot_speed);
 
   //KalmanFilter test
   //chassis_data.foot_speed_kalman = KalmanFilter_fir(&chassis_data.kalman_speed, chassis_data.foot_speed);
@@ -266,7 +276,6 @@ void chassis_feedback_update()
   VMC_LEG_R.Phi1 = -chassis_data.leg_position[1] + pi / 2;
   VMC_LEG_L.Phi4 = pi - (chassis_data.leg_position[2] + pi / 2);
   VMC_LEG_L.Phi1 = -chassis_data.leg_position[3] + pi / 2;
-  //printf("%f %f\n\n", VMC_LEG_R.Phi2, VMC_LEG_R.Phi3);
 
   // 正运动学解算出极坐标角度
   Forward_kinematics_R(VMC_LEG_R.Phi1, VMC_LEG_R.Phi4, chassis_data.leg_speed[1],chassis_data.leg_speed[0], 0, 0);
@@ -280,12 +289,13 @@ void chassis_feedback_update()
   chassis_data.leg_angle[0] = VMC_LEG_R.Phi0 - chassis_data.pitch;
   chassis_data.leg_angle[1] = VMC_LEG_L.Phi0 - chassis_data.pitch;
 
-  chassis_data.leg_gyro[0] = VMC_LEG_R.Phi0_gyro + chassis_data.gyro_pitch;
+  chassis_data.leg_gyro[0] = VMC_LEG_R.Phi0_gyro + chassis_data.gyro_pitch;//检查两个速度的方向，叠加时容易出错
   chassis_data.leg_gyro[1] = VMC_LEG_L.Phi0_gyro + chassis_data.gyro_pitch;
 
-  // PRINT(chassis_data.leg_gyro[0]);
-  // PRINT(VMC_LEG_R.Phi0_gyro);
-  // PRINT(chassis_data.gyro_pitch);
+  // LPF leg gyro
+  chassis_data.leg_gyro[0] = LPF_calc(&chassis_data.LPF_leg_gyro, chassis_data.leg_gyro[0]);
+  chassis_data.leg_gyro[1] = LPF_calc(&chassis_data.LPF_leg_gyro, chassis_data.leg_gyro[1]);
+
 
   //观测器
   VMC_LEG_R.L0_dot = differentiator(&VMC_LEG_R.d_L0,40,0.032,VMC_LEG_R.L0);
@@ -308,6 +318,8 @@ void chassis_feedback_update()
 
   plotFile3("LQR_1", wb_robot_get_time(), pi/2-chassis_data.leg_angle[0], chassis_data.leg_gyro[0],chassis_data.foot_distance);
   plotFile3("LQR_2", wb_robot_get_time(), chassis_data.foot_speed_lpf, chassis_data.pitch, chassis_data.gyro_pitch);
+
+  plotFile3("Set_state", wb_robot_get_time(), chassis_data.foot_distance_set, chassis_data.yaw_set, 0);
 
   if (wb_robot_get_time() > 0)
   {
